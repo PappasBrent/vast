@@ -12,6 +12,8 @@ VAST_RELAX_WARNINGS
 
 #include <mlir/Target/LLVMIR/Dialect/Builtin/BuiltinToLLVMIRTranslation.h>
 #include <mlir/Target/LLVMIR/Dialect/LLVMIR/LLVMToLLVMIRTranslation.h>
+
+#include <llvm/Support/Debug.h>
 VAST_UNRELAX_WARNINGS
 
 #include "vast/CodeGen/CodeGenContext.hpp"
