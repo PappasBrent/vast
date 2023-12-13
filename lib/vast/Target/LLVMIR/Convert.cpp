@@ -91,17 +91,4 @@ namespace vast::target::llvmir
         return mlir::translateModuleToLLVMIR(mlir_module, llvm_ctx);
     }
 
-    void register_vast_to_llvm_ir(mlir::DialectRegistry &registry)
-    {
-        registry.insert< hl::HighLevelDialect >();
-        mlir::registerAllToLLVMIRTranslations(registry);
-    }
-
-    void register_vast_to_llvm_ir(mcontext_t &mctx)
-    {
-        mlir::DialectRegistry registry;
-        register_vast_to_llvm_ir(registry);
-        mctx.appendDialectRegistry(registry);
-    }
-
 } // namespace vast::target::llvmir
