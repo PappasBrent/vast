@@ -51,8 +51,8 @@ namespace vast::hl::pipeline {
     //
     // stdtypes passes
     //
-    pipeline_step_ptr stdtypes() {
-        return pass(hl::createHLLowerTypesPass).depends_on(desugar);
+    pipeline_step_ptr standard_types() {
+        return pass(hl::createHLLowerTypesPass);
     }
 
 } // namespace vast::hl::pipeline

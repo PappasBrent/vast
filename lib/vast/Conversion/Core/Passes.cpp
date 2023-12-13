@@ -23,11 +23,11 @@ namespace vast::conv::pipeline {
 
     pipeline_step_ptr core_to_llvm() {
         // TODO add dependencies
-        return pass(createCoreToLLVMPass);
+        return pass(createCoreToLLVMPass).depends_on(irs_to_llvm);
     }
 
     pipeline_step_ptr to_llvm() {
-        return compose(irs_to_llvm, core_to_llvm, llvm_debug_scope);
+        return compose(irs_to_llvm, core_to_llvm);
     }
 
 } // namespace vast::conv::pipeline

@@ -46,7 +46,7 @@ namespace vast::hl {
 
         pipeline_step_ptr simplify();
 
-        pipeline_step_ptr stdtypes();
+        pipeline_step_ptr standard_types();
     } // namespace pipeline
 
 } // namespace vast::hl
