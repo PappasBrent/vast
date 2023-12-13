@@ -116,6 +116,17 @@ namespace vast {
         pass_builder_t pass_builder;
     };
 
+    template< typename Op >
+    struct nested_pass_pipeline_step : pass_pipeline_step
+    {
+        using pass_pipeline_step::pass_pipeline_step;
+
+        void schedule_on(pipeline_t &ppl) const override {
+            schedule_dependencies(ppl);
+            ppl.addNestedPass< Op >(pass_builder());
+        }
+    };
+
     // compound step represents subpipeline to be run
     struct compound_pipeline_step : pipeline_step
     {
@@ -143,6 +154,13 @@ namespace vast {
     template< typename... args_t >
     decltype(auto) pass(args_t &&... args) {
         return pipeline_step_init< pass_pipeline_step >(
+            std::forward< args_t >(args)...
+        );
+    }
+
+    template< typename Op,typename... args_t >
+    decltype(auto) nested_pass(args_t &&... args) {
+        return pipeline_step_init< nested_pass_pipeline_step< Op > >(
             std::forward< args_t >(args)...
         );
     }
