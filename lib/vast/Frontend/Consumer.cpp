@@ -141,9 +141,19 @@ namespace vast::cc {
     // vast stream consumer
     //
 
+    target_dialect get_target_dialect(const cc::vast_args &vargs) {
+        if (auto res = vargs.get_option(opt::emit_mlir)) {
+            return parse_target_dialect(res.value());
+        }
+
+        return target_dialect::llvm;
+    }
+
     void vast_stream_consumer::HandleTranslationUnit(acontext_t &actx) {
         base::HandleTranslationUnit(actx);
-        auto mod = result();
+
+        auto mod = execute_pipeline(get_target_dialect(vargs), result(), mctx.get());
+        VAST_CHECK(output_stream, "missing output stream");
 
         switch (action) {
             case output_type::emit_assembly:
@@ -151,8 +161,7 @@ namespace vast::cc {
                     backend::Backend_EmitAssembly, std::move(mod), mctx.get()
                 );
             case output_type::emit_mlir: {
-                auto trg = parse_target_dialect(vargs.get_option(opt::emit_mlir).value());
-                return emit_mlir_output(trg, std::move(mod), mctx.get());
+                return emit_mlir_output(std::move(mod), mctx.get());
             }
             case output_type::emit_llvm:
                 return emit_backend_output(
@@ -171,7 +180,6 @@ namespace vast::cc {
         backend backend_action, owning_module_ref mlir_module, mcontext_t *mctx
     ) {
         llvm::LLVMContext llvm_context;
-
         auto mod = target::llvmir::translate(mlir_module.get(), llvm_context);
         auto dl  = cgctx->actx.getTargetInfo().getDataLayoutString();
         clang::EmitBackendOutput(
@@ -181,11 +189,18 @@ namespace vast::cc {
     }
 
     void vast_stream_consumer::emit_mlir_output(
+        owning_module_ref mod, mcontext_t *mctx
+    ) {
+        mlir::OpPrintingFlags flags;
+        flags.enableDebugInfo(vargs.has_option(opt::show_locs), /* prettyForm */ true);
+
+        mod->print(*output_stream, flags);
+    }
+
+    owning_module_ref vast_consumer::execute_pipeline(
         target_dialect target, owning_module_ref mod, mcontext_t *mctx
     ) {
-        if (!output_stream || !mod) {
-            return;
-        }
+        VAST_CHECK(mod, "missing initial high-level module");
 
         // Handle source manager properly given that lifetime analysis
         // might emit warnings and remarks.
@@ -209,7 +224,14 @@ namespace vast::cc {
             llvm::DebugFlag = true;
         }
 
-        execute_pipeline(mod.get(), mctx);
+        // TODO deal with source and output type
+        auto pipeline = setup_pipeline(
+            pipeline_source::ast, output_type::emit_mlir, *mctx, vargs, default_pipelines_config()
+        );
+
+        if (mlir::failed(pipeline->run(mod.get()))) {
+            VAST_UNREACHABLE("MLIR pass manager failed when running vast passes");
+        }
 
         // Verify the diagnostic handler to make sure that each of the
         // diagnostics matched.
@@ -223,21 +245,7 @@ namespace vast::cc {
         //     generator->build_default_methods();
         // }
 
-        // FIXME: we cannot roundtrip prettyForm=true right now.
-        mlir::OpPrintingFlags flags;
-        flags.enableDebugInfo(vargs.has_option(opt::show_locs), /* prettyForm */ true);
-
-        mod->print(*output_stream, flags);
-    }
-
-    void vast_consumer::execute_pipeline(vast_module mod, mcontext_t *mctx) {
-        auto pipeline = setup_pipeline(
-            pipeline_source::ast, output_type::emit_mlir, *mctx, vargs, default_pipelines_config()
-        );
-
-        if (mlir::failed(pipeline->run(mod))) {
-            VAST_UNREACHABLE("MLIR pass manager failed when running vast passes");
-        }
+        return mod;
     }
 
     source_language get_source_language(const cc::language_options &opts) {

@@ -61,7 +61,7 @@ namespace vast::cc {
 
       protected:
 
-        void execute_pipeline(vast_module mod, mcontext_t *mctx);
+        owning_module_ref execute_pipeline(target_dialect target, owning_module_ref mod, mcontext_t *mctx);
 
         virtual void anchor() {}
 
@@ -96,9 +96,7 @@ namespace vast::cc {
             backend backend_action, owning_module_ref mlir_module, mcontext_t *mctx
         );
 
-        void emit_mlir_output(
-            target_dialect target, owning_module_ref mod, mcontext_t *mctx
-        );
+        void emit_mlir_output(owning_module_ref mod, mcontext_t *mctx);
 
         output_type action;
         output_stream_ptr output_stream;
