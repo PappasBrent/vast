@@ -114,6 +114,12 @@ namespace vast::cc {
     ) {
         auto passes = std::make_unique< pipeline_t >(&mctx);
 
+        // register all requirements here
+        mlir::DialectRegistry registry;
+        registry.insert< hl::HighLevelDialect >();
+        mlir::registerAllToLLVMIRTranslations(registry);
+        mctx.appendDialectRegistry(registry);
+
         passes->enableIRPrinting(
             [](auto *, auto *) { return false; }, // before
             [](auto *, auto *) { return true; },  // after
