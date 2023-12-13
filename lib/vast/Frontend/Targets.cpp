@@ -6,6 +6,9 @@ namespace vast::cc {
         if (trg == "hl" || trg == "high_level") {
             return target_dialect::high_level;
         }
+        if (trg == "ll") {
+            return target_dialect::ll;
+        }
         if (trg == "std") {
             return target_dialect::std;
         }
@@ -24,6 +27,8 @@ namespace vast::cc {
                 return "high_level";
             case target_dialect::std:
                 return "std";
+            case target_dialect::ll:
+                return "ll";
             case target_dialect::llvm:
                 return "llvm";
             case target_dialect::cir:

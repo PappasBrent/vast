@@ -1,6 +1,7 @@
 // Copyright (c) 2023-present, Trail of Bits, Inc.
 
 #include "vast/Frontend/Pipelines.hpp"
+
 VAST_RELAX_WARNINGS
 #include <mlir/Target/LLVMIR/Dialect/All.h>
 VAST_UNRELAX_WARNINGS
@@ -35,6 +36,10 @@ namespace vast::cc {
         pipeline_step_ptr standard_types() {
             return hl::pipeline::standard_types();
         }
+
+        // Conversion to LL VAST dialects
+        pipeline_step_ptr ll() {
+            return conv::pipeline::to_ll();
         }
 
         // Conversion to LLVM dialects
@@ -58,6 +63,7 @@ namespace vast::cc {
         conversion_path default_conversion_path = {
             { target_dialect::high_level, { reduce_high_level } },
             { target_dialect::std,        { standard_types } },
+            { target_dialect::ll,         { ll } },
             { target_dialect::llvm,       { llvm } }
         };
 
