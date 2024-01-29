@@ -1035,7 +1035,7 @@ def AddrLabelExpr
 }
 
 def InitListExpr
-  : HighLevel_Op< "initlist" >
+  : HighLevel_Op< "initlist", [NoMemoryEffect] >
   , Arguments<(ins Variadic<AnyType>:$elements)>
   , Results<(outs Variadic<AnyType>)>
 {
